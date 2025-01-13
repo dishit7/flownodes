@@ -54,7 +54,11 @@ export const FlowUI = () => {
       });
 
       const result = await response.json();
-      alert(result.data);
+     
+       const { updateNodeValue } = useFlowStore.getState();
+    Object.entries(result).forEach(([nodeId, value]) => {
+      updateNodeValue(nodeId, value.toString());
+    });
 
       const newNodes = currentNodes.map((node) => {
         if (node.type === 'output' && result[node.id]) {
