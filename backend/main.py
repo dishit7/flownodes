@@ -19,7 +19,18 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise ValueError("GOOGLE_API_KEY is not set in the environment variables.")
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-pro')
+generation_config = {
+  "temperature": 1,
+  "top_p": 0.95,
+  "top_k": 40,
+  "max_output_tokens": 2048,
+  "response_mime_type": "text/plain",
+}
+
+model = genai.GenerativeModel(
+  model_name="gemini-1.5-flash",
+  generation_config=generation_config,
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],  # Add your frontend URL
