@@ -32,6 +32,8 @@ export const Toolbar = () => {
         <DraggableItem type="input" label="Input" />
         <DraggableItem type="output" label="Output" />
         <DraggableItem type="llm" label="LLM (Gemini)" />
+         <DraggableItem type="mail" label="MAIL" />
+
 
       </div>
     </div>
