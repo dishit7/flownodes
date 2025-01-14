@@ -9,14 +9,16 @@ import { RunButton } from './RunButton'; // Import RunButton
 import { InputNode } from './InputNode';
 import { OutputNode } from './OutputNode';
 import { LLMNode } from './LLMNode';
-import { GmailSearchNode } from './GmailSeachNode';
-
+import {GmailSearchNode} from './GmailSeachNode'
+import { SendMailNode } from './SendMailNode';
+ 
 const nodeTypes = {
   input: InputNode,
   output: OutputNode,
   llm: LLMNode,
-  mail: GmailSearchNode,
-};
+  'mail-search': GmailSearchNode,
+  'mail-send':SendMailNode
+  };
 
 export const FlowUI = () => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);

@@ -10,6 +10,15 @@ from googleapiclient.discovery import build
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv  
+from email.mime.text import MIMEText
+import base64
+
+class SendMailRequest(BaseModel):
+    to: str
+    subject: str
+    body: str
+
+    
 load_dotenv()
 
 
@@ -41,8 +50,10 @@ app.add_middleware(
 
 # Configure Gmail OAuth
 CLIENT_SECRETS_FILE = "client_secret_863038160732-ddq9eij6rqa6h3e5oc8s4uubacm8j26f.apps.googleusercontent.com.json"
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-
+SCOPES = [
+    'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/gmail.send'
+]
 flow = Flow.from_client_secrets_file(
     CLIENT_SECRETS_FILE,
     scopes=SCOPES,
@@ -195,6 +206,38 @@ async def search_gmail(request: GmailSearchRequest, nodeId: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@app.post("/api/gmail/send")
+async def send_gmail(request: SendMailRequest, nodeId: str):
+    try:
+        credentials = get_credentials(nodeId)
+        if not credentials:
+            raise HTTPException(status_code=400, detail="Gmail not authorized for this node")
+        
+        service = build('gmail', 'v1', credentials=credentials)
+        
+        # Create message
+        message = MIMEText(request.body)
+        message['to'] = request.to
+        message['subject'] = request.subject
+        
+        # Encode the message
+        raw = base64.urlsafe_b64encode(message.as_bytes())
+        raw = raw.decode()
+        
+        # Send message
+        try:
+            service.users().messages().send(
+                userId='me',
+                body={'raw': raw}
+            ).execute()
+            return {"message": "Email sent successfully"}
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to send email: {str(e)}")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 # Pipeline processing logic
 @app.post("/api/process")
 async def process_pipeline(request: PipelineRequest):
