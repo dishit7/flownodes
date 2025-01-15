@@ -11,13 +11,15 @@ import { OutputNode } from './OutputNode';
 import { LLMNode } from './LLMNode';
 import {GmailSearchNode} from './GmailSeachNode'
 import { SendMailNode } from './SendMailNode';
+import { FileUploadNode } from './FileUplaodNode';
  
 const nodeTypes = {
   input: InputNode,
   output: OutputNode,
   llm: LLMNode,
   'mail-search': GmailSearchNode,
-  'mail-send':SendMailNode
+  'mail-send': SendMailNode,
+  file:FileUploadNode
   };
 
 export const FlowUI = () => {

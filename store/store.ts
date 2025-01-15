@@ -56,19 +56,19 @@ export const useFlowStore = create<FlowState>((set, get) => ({
     });
   },
   onConnect: (connection) => {
+    const edge = {
+      ...connection,
+      type: 'smoothstep',
+      animated: true,
+      markerEnd: { type: MarkerType.Arrow },
+      // Store the variable name from the target handle
+      target_handle: connection.targetHandle, // Add this property
+    };
+
     set({
-      edges: addEdge(
-        {
-          ...connection,
-          type: 'smoothstep',
-          animated: true,
-          markerEnd: { type: MarkerType.Arrow },
-        },
-        get().edges
-      ),
+      edges: addEdge(edge, get().edges),
     });
   },
-  
   updateNodeField: (nodeId, fieldName, fieldValue) => {
     set({
       nodes: get().nodes.map((node) => {
@@ -81,23 +81,23 @@ export const useFlowStore = create<FlowState>((set, get) => ({
         return node;
       }),
     });
-  },updateNodeValue: (nodeId, value) => {
-  set({
-    nodes: get().nodes.map((node) => {
-      if (node.id === nodeId) {
-        return {
-          ...node,
-          data: { ...node.data, value }
-        };
-      }
-      return node;
-    })
-  });
   },
-    setNodes: (nodes) => {
+  updateNodeValue: (nodeId, value) => {
+    set({
+      nodes: get().nodes.map((node) => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: { ...node.data, value },
+          };
+        }
+        return node;
+      }),
+    });
+  },
+  setNodes: (nodes) => {
     set({ nodes });
   },
-  
   setEdges: (edges) => {
     set({ edges });
   },

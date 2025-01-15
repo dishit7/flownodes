@@ -18,7 +18,7 @@ class SendMailRequest(BaseModel):
     subject: str
     body: str
 
-    
+
 load_dotenv()
 
 
@@ -70,6 +70,7 @@ class Edge(BaseModel):
     id: str
     source: str
     target: str
+    target_handle:str
 
 class InputValue(BaseModel):
     id: str
@@ -238,86 +239,142 @@ async def send_gmail(request: SendMailRequest, nodeId: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-# Pipeline processing logic
 @app.post("/api/process")
 async def process_pipeline(request: PipelineRequest):
     try:
-        # Create a graph of node connections
         graph = {}
         for edge in request.edges:
             if edge.source not in graph:
                 graph[edge.source] = []
             graph[edge.source].append(edge.target)
 
-        # Create a mapping of node IDs to their values
         node_values = {input_value.id: input_value.value for input_value in request.inputs}
+        
+        # Start with source nodes (input, file, mail-search)
+        source_nodes = [node for node in request.nodes if node.type in ['input', 'file', 'mail-search']]
+        current_layer = [node.id for node in source_nodes]
+        processed = set()
 
-        # Process each path through the graph
-        for input_node in (n for n in request.nodes if n.type == 'input'):
-            current_id = input_node.id
-            while current_id in graph:
-                next_nodes = graph[current_id]
-                for next_id in next_nodes:
-                    next_node = next((n for n in request.nodes if n.id == next_id), None)
+        while current_layer:
+            next_layer = []
+            
+            for node_id in current_layer:
+                if node_id in processed:
+                    continue
                     
-                    if not next_node:
-                        raise HTTPException(status_code=400, detail=f"Node with ID {next_id} not found")
+                node = next(n for n in request.nodes if n.id == node_id)
+                print(f"Processing node: {node.type} {node_id}")
 
-                    if next_node.type == 'llm':
-                        # Example for LLM node processing
-                        if 'model' not in globals():
-                            raise HTTPException(
-                                status_code=500, 
-                                detail="The 'model' for LLM processing is not defined"
-                            )
-                        response = model.generate_content(node_values[current_id])
-                        node_values[next_id] = response.text
+                if node.type == 'mail-search':
+                    credentials = get_credentials(node.id)
+                    if not credentials:
+                        raise HTTPException(status_code=400, detail="Gmail not authorized for this node")
                     
-                    elif next_node.type == 'mail':
-                        # Gmail search node
-                        credentials = get_credentials(next_node.id)  # Replace with actual credential retrieval logic
-                        if not credentials:
-                            raise HTTPException(status_code=400, detail="Gmail not authorized for this node")
-                        
-                        # Build Gmail service
-                        service = build('gmail', 'v1', credentials=credentials)
-                        
-                        # Perform Gmail search
-                        results = service.users().messages().list(
+                    service = build('gmail', 'v1', credentials=credentials)
+                    
+                    results = service.users().messages().list(
+                        userId='me',
+                        q=node.data.get('searchQuery', ''),
+                        maxResults=node.data.get('maxResults', 5)
+                    ).execute()
+                    
+                    messages = []
+                    for msg in results.get('messages', []):
+                        message = service.users().messages().get(
                             userId='me',
-                            q=next_node.data.get('searchQuery', ''),
-                            maxResults=next_node.data.get('maxResults', 5)
+                            id=msg['id'],
+                            format='metadata'
                         ).execute()
                         
-                        # Parse email messages
-                        messages = []
-                        for msg in results.get('messages', []):
-                            message = service.users().messages().get(
-                                userId='me',
-                                id=msg['id'],
-                                format='metadata'
-                            ).execute()
-                            
-                            headers = message['payload']['headers']
-                            subject = next((h['value'] for h in headers if h['name'] == 'Subject'), '')
-                            from_email = next((h['value'] for h in headers if h['name'] == 'From'), '')
-                            
-                            messages.append({
-                                'id': msg['id'],
-                                'subject': subject,
-                                'from': from_email,
-                                'date': message['internalDate']
-                            })
+                        headers = message['payload']['headers']
+                        subject = next((h['value'] for h in headers if h['name'] == 'Subject'), '')
+                        from_email = next((h['value'] for h in headers if h['name'] == 'From'), '')
                         
-                        node_values[next_id] = messages
+                        messages.append({
+                            'id': msg['id'],
+                            'subject': subject,
+                            'from': from_email,
+                            'date': message['internalDate']
+                        })
                     
-                    elif next_node.type == 'output':
-                        # Pass through to output
-                        node_values[next_id] = node_values.get(current_id, '')
+                    node_values[node_id] = messages
+                    print(f"Mail search results: {messages}")
 
-                current_id = next_id
+                elif node.type == 'file':
+                    file_data = node.data
+                    file_content = file_data.get('fileContent', '')
+                    node_values[node_id] = file_content
+                    print(f"File content loaded: {file_content[:100]}...")
 
-        # Return values for output nodes
+                elif node.type == 'llm':
+                    prompt_template = node.data.get('promptTemplate', '')
+                    system_instructions = node.data.get('systemInstructions', '')
+                    
+                    variable_values = {}
+                    for edge in request.edges:
+                        if edge.target == node_id:
+                            variable_name = edge.target_handle.replace('var-', '') if edge.target_handle else None
+                            if variable_name:
+                                source_value = node_values.get(edge.source, '')
+                                if source_value:
+                                    variable_values[variable_name] = source_value
+                                    print(f"Variable {variable_name} set from {edge.source}")
+                    
+                    final_prompt = prompt_template
+                    for var_name, value in variable_values.items():
+                        final_prompt = final_prompt.replace(f"{{{var_name}}}", str(value))
+                    
+                    combined_input = f"{system_instructions}\n\n{final_prompt}"
+                    print(f"LLM input: {combined_input}")
+                    
+                    prompt = {"parts": [{"text": combined_input}]}
+                    response = model.generate_content(prompt)
+                    node_values[node_id] = response.text
+                    print(f"LLM output: {response.text}")
+
+                elif node.type == 'mail-send':
+                    # Get mail content from incoming edge (LLM output)
+                    mail_body = ""
+                    for edge in request.edges:
+                        if edge.target == node_id:
+                            mail_body = node_values.get(edge.source, '')
+                    
+                    credentials = get_credentials(node.id)
+                    if not credentials:
+                        raise HTTPException(status_code=400, detail="Gmail not authorized for this node")
+                    
+                    service = build('gmail', 'v1', credentials=credentials)
+                    
+                    message = create_message(
+                        sender="me",
+                        to=node.data.get('to', ''),
+                        subject=node.data.get('subject', ''),
+                        message_text=mail_body
+                    )
+                    
+                    try:
+                        sent_message = service.users().messages().send(
+                            userId='me', 
+                            body=message
+                        ).execute()
+                        node_values[node_id] = f"Email sent successfully. Message ID: {sent_message['id']}"
+                        print(f"Email sent: {node_values[node_id]}")
+                    except Exception as e:
+                        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
+
+                elif node.type == 'output':
+                    for edge in request.edges:
+                        if edge.target == node_id:
+                            node_values[node_id] = node_values.get(edge.source, '')
+                            print(f"Output set: {node_values[node_id]}")
+                
+                processed.add(node_id)
+                
+                if node_id in graph:
+                    next_layer.extend(graph[node_id])
+            
+            current_layer = next_layer
+
         return {
             node.id: node_values.get(node.id, '')
             for node in request.nodes
@@ -325,9 +382,9 @@ async def process_pipeline(request: PipelineRequest):
         }
 
     except Exception as e:
+        print(f"Error in processing: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-    
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
