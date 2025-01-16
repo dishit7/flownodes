@@ -242,6 +242,7 @@ async def send_gmail(request: SendMailRequest, nodeId: str):
 @app.post("/api/process")
 async def process_pipeline(request: PipelineRequest):
     try:
+        # Existing graph creation code remains the same
         graph = {}
         for edge in request.edges:
             if edge.source not in graph:
@@ -250,7 +251,8 @@ async def process_pipeline(request: PipelineRequest):
 
         node_values = {input_value.id: input_value.value for input_value in request.inputs}
         
-        # Start with source nodes (input, file, mail-search)
+        # Update source nodes to include mail-search nodes
+        
         source_nodes = [node for node in request.nodes if node.type in ['input', 'file', 'mail-search']]
         current_layer = [node.id for node in source_nodes]
         processed = set()
@@ -266,47 +268,37 @@ async def process_pipeline(request: PipelineRequest):
                 print(f"Processing node: {node.type} {node_id}")
 
                 if node.type == 'mail-search':
-                    credentials = get_credentials(node.id)
-                    if not credentials:
-                        raise HTTPException(status_code=400, detail="Gmail not authorized for this node")
+                    # Get search parameters from node data
+                    search_query = node.data.get('query', '')
+                    max_results = node.data.get('maxResults', 10)
                     
-                    service = build('gmail', 'v1', credentials=credentials)
+                    # Call the Gmail search endpoint
+                    search_request = GmailSearchRequest(
+                        query=search_query,
+                        max_results=max_results
+                    )
                     
-                    results = service.users().messages().list(
-                        userId='me',
-                        q=node.data.get('searchQuery', ''),
-                        maxResults=node.data.get('maxResults', 5)
-                    ).execute()
+                    # Make internal call to search_gmail function
+                    search_results = await search_gmail(search_request, node_id)
                     
-                    messages = []
-                    for msg in results.get('messages', []):
-                        message = service.users().messages().get(
-                            userId='me',
-                            id=msg['id'],
-                            format='metadata'
-                        ).execute()
-                        
-                        headers = message['payload']['headers']
-                        subject = next((h['value'] for h in headers if h['name'] == 'Subject'), '')
-                        from_email = next((h['value'] for h in headers if h['name'] == 'From'), '')
-                        
-                        messages.append({
-                            'id': msg['id'],
-                            'subject': subject,
-                            'from': from_email,
-                            'date': message['internalDate']
-                        })
+                    # Format the results as needed for downstream nodes
+                    formatted_results = []
+                    for msg in search_results['messages']:
+                        formatted_msg = (
+                            f"Subject: {msg['subject']}\n"
+                            f"From: {msg['from']}\n"
+                            f"Date: {msg['date']}\n"
+                            f"ID: {msg['id']}\n"
+                            "-------------------"
+                        )
+                        formatted_results.append(formatted_msg)
                     
-                    node_values[node_id] = messages
-                    print(f"Mail search results: {messages}")
-
-                elif node.type == 'file':
-                    file_data = node.data
-                    file_content = file_data.get('fileContent', '')
-                    node_values[node_id] = file_content
-                    print(f"File content loaded: {file_content[:100]}...")
+                    # Store as string for easy consumption by LLM node
+                    node_values[node_id] = "\n".join(formatted_results)
+                    print(f"Mail search results processed for node {node_id}")
 
                 elif node.type == 'llm':
+                    # Existing LLM logic remains the same
                     prompt_template = node.data.get('promptTemplate', '')
                     system_instructions = node.data.get('systemInstructions', '')
                     
@@ -318,7 +310,7 @@ async def process_pipeline(request: PipelineRequest):
                                 source_value = node_values.get(edge.source, '')
                                 if source_value:
                                     variable_values[variable_name] = source_value
-                                    print(f"Variable {variable_name} set from {edge.source}")
+                                    print(f"Variable {variable_name} set from {edge.source}: {source_value[:100]}...")
                     
                     final_prompt = prompt_template
                     for var_name, value in variable_values.items():
@@ -332,41 +324,24 @@ async def process_pipeline(request: PipelineRequest):
                     node_values[node_id] = response.text
                     print(f"LLM output: {response.text}")
 
+                # Rest of your existing node type handling remains the same
+                elif node.type == 'file':
+                    file_data = node.data
+                    file_content = file_data.get('fileContent', '')
+                    node_values[node_id] = file_content
+                
                 elif node.type == 'mail-send':
-                    # Get mail content from incoming edge (LLM output)
-                    mail_body = ""
-                    for edge in request.edges:
-                        if edge.target == node_id:
-                            mail_body = node_values.get(edge.source, '')
-                    
-                    credentials = get_credentials(node.id)
-                    if not credentials:
-                        raise HTTPException(status_code=400, detail="Gmail not authorized for this node")
-                    
-                    service = build('gmail', 'v1', credentials=credentials)
-                    
-                    message = create_message(
-                        sender="me",
-                        to=node.data.get('to', ''),
-                        subject=node.data.get('subject', ''),
-                        message_text=mail_body
-                    )
-                    
-                    try:
-                        sent_message = service.users().messages().send(
-                            userId='me', 
-                            body=message
-                        ).execute()
-                        node_values[node_id] = f"Email sent successfully. Message ID: {sent_message['id']}"
-                        print(f"Email sent: {node_values[node_id]}")
-                    except Exception as e:
-                        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
-
+                   # Get the email body from incoming edge, similar to output node
+                   print("inside the send mail if condition")
+                   for edge in request.edges:
+                       if edge.target == node_id:
+                           node_values[node_id] = node_values.get(edge.source, '')
+                           print(f"Mail send node body set: {node_values[node_id]}")                                                                         
+                
                 elif node.type == 'output':
                     for edge in request.edges:
                         if edge.target == node_id:
                             node_values[node_id] = node_values.get(edge.source, '')
-                            print(f"Output set: {node_values[node_id]}")
                 
                 processed.add(node_id)
                 
@@ -374,16 +349,18 @@ async def process_pipeline(request: PipelineRequest):
                     next_layer.extend(graph[node_id])
             
             current_layer = next_layer
-
+        
         return {
             node.id: node_values.get(node.id, '')
             for node in request.nodes
-            if node.type == 'output'
+            if node.type in ['output', 'mail-send']
         }
+
 
     except Exception as e:
         print(f"Error in processing: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     import uvicorn

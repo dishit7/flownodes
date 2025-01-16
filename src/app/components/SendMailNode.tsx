@@ -49,11 +49,11 @@ export const SendMailNode = ({ data }: { data: SendMailNodeData }) => {
   };
 
   const handleSendMail = async () => {
-    if (!data.to || !data.subject || !data.body) {
+      if (!data.to || !data.subject || !data.value) {
+      console.log(`data.to is ${data.to} data.subject is ${data.subject} data.body is ${data.body} and data value is${data.value}`)
       setStatus('Please fill all fields');
       return;
     }
-
     setLoading(true);
     setStatus('');
 
@@ -64,7 +64,7 @@ export const SendMailNode = ({ data }: { data: SendMailNodeData }) => {
         body: JSON.stringify({
           to: data.to,
           subject: data.subject,
-          body: data.body,
+          body: data.value,
         }),
       });
 
@@ -119,13 +119,13 @@ export const SendMailNode = ({ data }: { data: SendMailNodeData }) => {
             placeholder="Subject"
             className="w-full p-2 border rounded"
           />
-          <textarea
-            value={data.body || ''}
-            onChange={(e) => updateNodeField(data.id, 'body', e.target.value)}
-            placeholder="Email body"
-            rows={4}
-            className="w-full p-2 border rounded"
-          />
+<textarea
+    value={data.value || data.body || ''} // Add data.value here
+    onChange={(e) => updateNodeField(data.id, 'body', e.target.value)}
+    placeholder="Email body"
+    rows={4}
+    className="w-full p-2 border rounded"
+/>
           <button
             onClick={handleSendMail}
             disabled={loading}
