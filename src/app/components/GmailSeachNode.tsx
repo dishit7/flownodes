@@ -10,6 +10,8 @@ interface GmailSearchNodeData {
   searchQuery: string;
   maxResults: number;
   isAuthorized?: boolean;
+  searchResults?: any[];  // Add this field to hold the results
+ 
 }
 
 export const GmailSearchNode = ({ data }: { data: GmailSearchNodeData }) => {
@@ -63,29 +65,36 @@ export const GmailSearchNode = ({ data }: { data: GmailSearchNodeData }) => {
   };
 
   const handleSearch = async () => {
-      if (!data.searchQuery) return;
-            const nodeId = data.id;
+  if (!data.searchQuery) return;
+  const nodeId = data.id;
+  
+  console.log('Search initiated', data.searchQuery, data.maxResults);
+  setLoading(true);
+  
+  try {
+    console.log('Sending request to backend...');
+    const response = await fetch(`http://localhost:8000/api/gmail/search?nodeId=${nodeId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: data.searchQuery,
+        max_results: data.maxResults
+      })
+    });
+    console.log('Response received:', response);
 
+    const { messages } = await response.json();
+    console.log('Messages:', messages);
 
-    setLoading(true);
-    try {
-      const response = await fetch(`http://localhost:8000/api/gmail/search?nodeId=${nodeId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: data.searchQuery,
-          max_results: data.maxResults
-        })
-      });
-      
-      const { messages } = await response.json();
-      setResults(messages);
-    } catch (error) {
-      console.error('Search error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    updateNodeField(nodeId, 'searchResults', messages);
+    setResults(messages);
+  } catch (error) {
+    console.error('Search error:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <BaseNode

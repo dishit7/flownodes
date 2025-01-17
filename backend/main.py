@@ -250,6 +250,9 @@ async def process_pipeline(request: PipelineRequest):
             graph[edge.source].append(edge.target)
 
         node_values = {input_value.id: input_value.value for input_value in request.inputs}
+
+        #print(f"Edge from {edge.source} to {edge.target} with variable name: {variable_name}")
+       # print(f"Source value for edge: {source_value}")
         
         # Update source nodes to include mail-search nodes
         
@@ -267,35 +270,24 @@ async def process_pipeline(request: PipelineRequest):
                 node = next(n for n in request.nodes if n.id == node_id)
                 print(f"Processing node: {node.type} {node_id}")
 
+                      
+                    
                 if node.type == 'mail-search':
-                    # Get search parameters from node data
-                    search_query = node.data.get('query', '')
-                    max_results = node.data.get('maxResults', 10)
+                  print(f"Debug - Node data for mail-search: {node.data}")  # See what's in node.data
+    
+    # Try different possible locations of the search results
+                  search_results = node.data.get('value', '')  # Try 'value'
+                  if not search_results:
+                      search_results = node.data.get('searchResults', '')  # Try 'searchResults'
+                  if not search_results:
+                      search_results = node.data.get('messages', '')  # Try 'messages'
+        
+                  print(f"Debug - Search results found: {search_results}")
+    
+                  node_values[node_id] = search_results
+                  print(f"Debug - Node values after setting: {node_values}")
                     
-                    # Call the Gmail search endpoint
-                    search_request = GmailSearchRequest(
-                        query=search_query,
-                        max_results=max_results
-                    )
-                    
-                    # Make internal call to search_gmail function
-                    search_results = await search_gmail(search_request, node_id)
-                    
-                    # Format the results as needed for downstream nodes
-                    formatted_results = []
-                    for msg in search_results['messages']:
-                        formatted_msg = (
-                            f"Subject: {msg['subject']}\n"
-                            f"From: {msg['from']}\n"
-                            f"Date: {msg['date']}\n"
-                            f"ID: {msg['id']}\n"
-                            "-------------------"
-                        )
-                        formatted_results.append(formatted_msg)
-                    
-                    # Store as string for easy consumption by LLM node
-                    node_values[node_id] = "\n".join(formatted_results)
-                    print(f"Mail search results processed for node {node_id}")
+                     
 
                 elif node.type == 'llm':
                     # Existing LLM logic remains the same
