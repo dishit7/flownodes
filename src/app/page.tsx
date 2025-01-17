@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <main className="flex">
       <Toolbar />
-      <div className="ml-[200px] flex-1">
+      <div className=" flex-1">
         <FlowUI />
         
       </div>

@@ -91,12 +91,11 @@ export const LLMNode = ({ data }: { data: LLMNodeData }) => {
             position={Position.Left}
             id={`var-${variable}`}
             style={{
-              top: `${(index + 1) * 40}px`, // Add vertical spacing
-              left: '-10px',
-              background: '#4f46e5',
-              width: '10px',
-              height: '10px',
-              borderRadius: '50%',
+            top: `${(index + 1) * 40}px`,  
+            background: 'white',
+            width: '8px',
+            height: '8px',
+            border: '2px solid #5e60ce',
             }}
           >
             <span
@@ -121,10 +120,10 @@ export const LLMNode = ({ data }: { data: LLMNodeData }) => {
         style={{
           top: '50%',
           right: '-10px',
-          background: '#4f46e5',
-          width: '10px',
-          height: '10px',
-          borderRadius: '50%',
+          background: 'white',
+          width: '8px',
+          height: '8px',
+          border: '2px solid #5e60ce'
         }}
       />
     </BaseNode>

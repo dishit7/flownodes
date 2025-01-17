@@ -12,8 +12,8 @@ interface BaseNodeProps {
   inputHandles?: HandleConfig[];
   outputHandles?: HandleConfig[];
   children?: React.ReactNode;
-  style?: React.CSSProperties;
-  childrenStyle?: React.CSSProperties;
+  style?: React.CSSProperties;  
+  childrenStyle?: React.CSSProperties;  
 }
 
 export const BaseNode: React.FC<BaseNodeProps> = ({
@@ -21,13 +21,16 @@ export const BaseNode: React.FC<BaseNodeProps> = ({
   inputHandles = [],
   outputHandles = [],
   children,
-  style = {},
+  style = {}, 
   childrenStyle = {},
 }) => {
   return (
-    <div className="base-node" style={style}>
-      <div className="node-header">{label}</div>
-      <div className="node-content" style={childrenStyle}>
+    <div
+      className="base-node bg-white border border-gray-300 rounded-lg p-2 min-w-[45px]  "  
+      style={style}  
+    >
+      <div className="node-header text-lg font-semibold">{label}</div>
+      <div className="node-content mt-2" style={childrenStyle}>
         {children}
       </div>
 

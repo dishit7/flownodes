@@ -8,7 +8,7 @@ interface InputNodeData {
   nodeType: string;
   value: string;
 }
-// components/nodes/InputNode.tsx
+
 export const InputNode = ({ data }: { data: InputNodeData }) => {
   const updateNodeValue = useFlowStore((state) => state.updateNodeValue);
 
@@ -17,7 +17,9 @@ export const InputNode = ({ data }: { data: InputNodeData }) => {
       id={data.id}
       label="Input"
       outputHandles={[{ id: 'output', position: Position.Right }]}
-      style={{ background: '#ffffff', border: '1px solid #ccc', borderRadius: '8px', padding: '10px', minWidth: '150px' }}
+      childrenStyle={{
+        padding: '0',  
+      }}
     >
       <textarea
         value={data.value || ''}

@@ -14,7 +14,7 @@ const DraggableItem = ({ type, label }: DraggableItemProps) => {
 
   return (
     <div
-      className="bg-blue-600 text-white p-3 rounded-lg cursor-grab mb-2 text-center"
+      className="bg-blue-600 text-white p-3 rounded-lg cursor-grab text-center"
       onDragStart={onDragStart}
       onDragEnd={(e) => e.preventDefault()}
       draggable
@@ -26,19 +26,15 @@ const DraggableItem = ({ type, label }: DraggableItemProps) => {
 
 export const Toolbar = () => {
   return (
-    <div className="p-4 bg-white border-r w-[200px] fixed left-0 top-0 h-full shadow-md">
+    <div className="p-4 bg-white border-b w-full fixed top-0 left-0 shadow-md">
       <h2 className="text-lg font-bold mb-4">Nodes</h2>
-      <div className="space-y-2">
+      <div className="flex space-x-4 overflow-x-auto">
         <DraggableItem type="input" label="Input" />
         <DraggableItem type="output" label="Output" />
         <DraggableItem type="llm" label="LLM (Gemini)" />
         <DraggableItem type="mail-search" label="Mail Search" />
         <DraggableItem type="mail-send" label="Mail Send" />
-         <DraggableItem type="file" label="File Upload" />
-
-
-
-
+        <DraggableItem type="file" label="File Upload" />
       </div>
     </div>
   );
