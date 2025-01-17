@@ -12,6 +12,7 @@ import { LLMNode } from './LLMNode';
 import {GmailSearchNode} from './GmailSeachNode'
 import { SendMailNode } from './SendMailNode';
 import { FileUploadNode } from './FileUplaodNode';
+import { NodeData } from '../../../types';
  
 const nodeTypes = {
   input: InputNode,
@@ -20,7 +21,17 @@ const nodeTypes = {
   'mail-search': GmailSearchNode,
   'mail-send': SendMailNode,
   file:FileUploadNode
+};
+
+interface Node {
+  id: string;
+  type: string;
+  data: {
+    value?: string | number;
+    [key: string]: any;
   };
+}
+ 
 
 export const FlowUI = () => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
@@ -61,7 +72,7 @@ export const FlowUI = () => {
      
        const { updateNodeValue } = useFlowStore.getState();
     Object.entries(result).forEach(([nodeId, value]) => {
-      updateNodeValue(nodeId, value.toString());
+      updateNodeValue(nodeId, String(value));
     });
 
       const newNodes = currentNodes.map((node) => {
@@ -83,7 +94,8 @@ export const FlowUI = () => {
 
       onNodesChange([
         {
-          type: 'replace',
+          //@ts-ignore
+          type: 'replace',  
           items: newNodes,
         },
       ]);
@@ -155,7 +167,7 @@ export const FlowUI = () => {
       const { nodes: savedNodes, edges: savedEdges, pendingAuthNodeId } = JSON.parse(savedState);
       
       // Update the authorized node
-      const updatedNodes = savedNodes.map(node => 
+      const updatedNodes = savedNodes.map((node:Node)=> 
         node.id === pendingAuthNodeId 
           ? { ...node, data: { ...node.data, isAuthorized: true }} 
           : node
@@ -172,7 +184,7 @@ export const FlowUI = () => {
 
 
   return (
-    <div ref={reactFlowWrapper} className="h-[70vh] w-full" style={{ width: '100%', height: '70vh' }}>
+    <div ref={reactFlowWrapper} className="h-[70vh] w-full mt-[130px]" style={{ width: '100%',  height: 'calc(100vh - 130px)'}}>
       <ReactFlow
         nodes={nodes}
         edges={edges}

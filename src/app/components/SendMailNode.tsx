@@ -11,6 +11,7 @@ interface SendMailNodeData {
   subject: string;
   body: string;
   isAuthorized?: boolean;
+  value:string
 }
 
 export const SendMailNode = ({ data }: { data: SendMailNodeData }) => {
