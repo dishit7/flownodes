@@ -73,7 +73,7 @@ export const GmailSearchNode = ({ data }: { data: GmailSearchNodeData }) => {
   
   try {
     console.log('Sending request to backend...');
-    const response = await fetch(`http://localhost:8000/api/gmail/search?nodeId=${nodeId}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/gmail/search?nodeId=${nodeId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

@@ -57,7 +57,7 @@ SCOPES = [
 flow = Flow.from_client_secrets_file(
     CLIENT_SECRETS_FILE,
     scopes=SCOPES,
-    redirect_uri="http://localhost:8000/api/auth/callback"
+    redirect_uri="https://flownodes.api.dishit.dev/api/auth/callback"
 )
 
 # Data models
