@@ -56,7 +56,8 @@ export const FlowUI = () => {
     }));
 
     try {
-      const response = await fetch('http://localhost:8000/api/process', {
+      console.log( `${process.env.NEXT_PUBLIC_API_URL}`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/process`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

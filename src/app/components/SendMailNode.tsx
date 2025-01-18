@@ -33,7 +33,7 @@ export const SendMailNode = ({ data }: { data: SendMailNodeData }) => {
   const handleAuth = async () => {
     try {
       const nodeId = data.id;
-      const response = await fetch(`http://localhost:8000/api/auth/gmail?nodeId=${nodeId}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/gmail?nodeId=${nodeId}`);
       const { url } = await response.json();
 
       const flowState = {
@@ -59,7 +59,7 @@ export const SendMailNode = ({ data }: { data: SendMailNodeData }) => {
     setStatus('');
 
     try {
-      const response = await fetch(`http://localhost:8000/api/gmail/send?nodeId=${data.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/gmail/send?nodeId=${data.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
