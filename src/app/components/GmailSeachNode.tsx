@@ -40,7 +40,7 @@ export const GmailSearchNode = ({ data }: { data: GmailSearchNodeData }) => {
   const handleAuth = async () => {
     try {
       const nodeId = data.id;
-      const response = await fetch(`http://localhost:8000/api/auth/gmail?nodeId=${nodeId}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/gmail?nodeId=${nodeId}`);
       const { url } = await response.json();
       
       const flowState = {
