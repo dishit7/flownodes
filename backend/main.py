@@ -126,6 +126,10 @@ def get_credentials(node_id: str) -> Optional[Credentials]:
 
 pending_node_id = None
 
+@app.get("/")
+def read_root():
+    return {"message": "Hello, world!"}
+
 @app.get("/api/auth/gmail")
 async def gmail_auth(nodeId: str):
     global pending_node_id
