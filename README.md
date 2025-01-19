@@ -64,6 +64,16 @@ Below is a screenshot of a workflow demo created using Flownodes:
     ```
 
    The backend will start running on `http://localhost:5000`.
+   
+
+#### Option 2: Using Docker (For Docker users)
+If you'd like to use Docker for setting up the project, you can run the following command:
+
+1. **Build and start the backend and frontend service using Docker Compose:**
+    ```bash
+    docker-compose up --build
+    ```
+
 
 ### 3. Configuration
  
