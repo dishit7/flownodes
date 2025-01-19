@@ -10,6 +10,15 @@ Flownodes is a low-code node-based tool for building **GenAI**-powered agentic w
 - **Backend**: Python FastApi  for handling logic and workflows
 - **Purpose**: Allows users to create workflows with a simple UI and a backend that handles the logic of node execution.
 
+
+## Workflow Demo
+
+Below is a screenshot of a workflow demo created using Flownodes:
+
+![Workflow Demo](https://github.com/dishit7/flownodes/raw/main/public/WorkFlowDemo2.png)
+
+
+
 ## Prerequisites
 
 - **Node.js** (LTS version recommended)
@@ -80,12 +89,5 @@ The architecture of Flownodes is designed for performance, scalability, and ease
     - The frontend sends user requests to the backend, where the workflow logic is processed.
     - The **Gemini API** is integrated into the backend to provide AI-driven functionality for various tasks, such as text generation or task automation.
     - The workflow states are managed centrally using **Zustand**, allowing the frontend to reactively update based on user interactions.
-
-
-## Workflow Demo
-
-Below is a screenshot of a workflow demo created using Flownodes:
-
-![Workflow Demo](./public/WorkflowDemo2.png)
 
 
