@@ -9,7 +9,7 @@ import {
   applyEdgeChanges,
   MarkerType,
 } from 'reactflow';
-import { CustomNode } from '../../types';
+import { CustomNode } from '@/types';
 
 interface FlowState {
   nodes: CustomNode[];
