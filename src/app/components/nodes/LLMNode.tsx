@@ -2,7 +2,7 @@
 import { useCallback } from 'react';
 import { Position, Handle } from 'reactflow';
 import { BaseNode } from './BaseNode';
-import { useFlowStore } from '../../../store/store';
+import { useFlowStore } from '@/store/store';
 
 interface LLMNodeData {
   id: string;

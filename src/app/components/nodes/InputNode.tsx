@@ -1,7 +1,7 @@
 // components/nodes/InputNode.tsx
 import { Position } from 'reactflow';
 import { BaseNode } from './BaseNode';
-import { useFlowStore } from '../../../store/store';
+import { useFlowStore } from '@/store/store';
 
 interface InputNodeData {
   id: string;
