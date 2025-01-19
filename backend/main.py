@@ -33,7 +33,7 @@ model = genai.GenerativeModel(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000","https://flownodes-ten.vercel.app"],  # Add your frontend URL
+    allow_origins=["http://localhost:3000","https://flownodes-ten.vercel.app","https://flownodes.dishit.dev"],  # Add your frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

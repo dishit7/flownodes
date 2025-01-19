@@ -81,7 +81,7 @@ async def auth_callback(request: Request):
         flow.fetch_token(code=code)
         credentials = flow.credentials
         store_credentials(pending_node_id, credentials)
-        redirect_url = f"https://flownodes-ten.vercel.app?nodeId={pending_node_id}&authSuccess=true"
+        redirect_url = f"https://flownodes.dishit.dev/?nodeId={pending_node_id}&authSuccess=true"
         pending_node_id = None
         return RedirectResponse(url=redirect_url)
     except Exception as e:
