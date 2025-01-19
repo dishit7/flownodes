@@ -2,7 +2,7 @@
 import { Position } from 'reactflow';
 import { BaseNode } from './BaseNode';
 import { useState, useCallback } from 'react';
-import { useFlowStore } from '../../../store/store';
+import { useFlowStore } from '@/store/store';
 
 interface FileUploadNodeData {
   id: string;
@@ -53,7 +53,6 @@ export const FileUploadNode = ({ data }: { data: FileUploadNodeData }) => {
     <BaseNode
       id={data.id}
       label="File Upload"
-      inputHandles={[{ id: 'input', position: Position.Left }]}
       outputHandles={[{ id: 'output', position: Position.Right }]}
       style={{
         background: '#ffffff',

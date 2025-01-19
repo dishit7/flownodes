@@ -1,6 +1,6 @@
 // app/page.tsx
-import { FlowUI } from './components/FlowUI';
-import { Toolbar } from './components/ToolBar';
+import { FlowUI } from './components/ui/FlowUI';
+import { Toolbar } from './components/ui/ToolBar';
 
 export default function Home() {
   return (

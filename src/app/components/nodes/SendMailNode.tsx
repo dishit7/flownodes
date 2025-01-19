@@ -2,7 +2,7 @@
 import { Position } from 'reactflow';
 import { BaseNode } from './BaseNode';
 import { useState, useEffect } from 'react';
-import { useFlowStore } from '../../../store/store';
+import { useFlowStore } from '@/store/store';
 
 interface SendMailNodeData {
   id: string;
@@ -33,7 +33,7 @@ export const SendMailNode = ({ data }: { data: SendMailNodeData }) => {
   const handleAuth = async () => {
     try {
       const nodeId = data.id;
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/gmail?nodeId=${nodeId}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/gmail?nodeId=${nodeId}`);
       const { url } = await response.json();
 
       const flowState = {

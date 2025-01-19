@@ -3,17 +3,16 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ReactFlow, { Background, Controls, MiniMap, ReactFlowInstance } from 'reactflow';
-import { useFlowStore } from '../../../store/store';
+import { useFlowStore } from '@/store/store';
 import 'reactflow/dist/style.css';
-import { RunButton } from './RunButton'; // Import RunButton
-import { InputNode } from './InputNode';
-import { OutputNode } from './OutputNode';
-import { LLMNode } from './LLMNode';
-import {GmailSearchNode} from './GmailSeachNode'
-import { SendMailNode } from './SendMailNode';
-import { FileUploadNode } from './FileUplaodNode';
-import { NodeData } from '../../../types';
- 
+import { RunButton } from './RunButton';  
+import { InputNode } from '../nodes/InputNode';
+import { OutputNode } from '../nodes/OutputNode';
+import { LLMNode } from '../nodes/LLMNode';
+import {GmailSearchNode} from '../nodes/GmailSearchNode'
+import { SendMailNode } from '../nodes/SendMailNode';
+import { FileUploadNode } from '../nodes/FileUplaodNode';
+  
 const nodeTypes = {
   input: InputNode,
   output: OutputNode,
